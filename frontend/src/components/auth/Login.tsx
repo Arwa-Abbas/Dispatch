@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { TruckIcon } from '@heroicons/react/24/outline';
+import { TruckIcon, HomeIcon } from '@heroicons/react/24/outline';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -29,6 +29,17 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
+        {/* Back to Home Button */}
+        <div className="mb-4">
+          <button
+            onClick={() => navigate('/')}
+            className="inline-flex items-center text-sm text-gray-600 hover:text-primary-600 transition-colors"
+          >
+            <HomeIcon className="h-4 w-4 mr-1" />
+            Back to Home
+          </button>
+        </div>
+
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-primary-600 rounded-xl shadow-lg">

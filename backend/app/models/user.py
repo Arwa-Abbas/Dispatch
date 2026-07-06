@@ -25,5 +25,21 @@ class User(SQLModel, table=True):
     customer_profile: Optional["Customer"] = Relationship(back_populates="user")
     driver_profile: Optional["Driver"] = Relationship(back_populates="user")
     
+    # Shipment relationships with explicit foreign keys
+    shipments_as_customer: List["Shipment"] = Relationship(
+        back_populates="customer",
+        sa_relationship_kwargs={"foreign_keys": "[Shipment.customer_id]"}
+    )
+    shipments_as_driver: List["Shipment"] = Relationship(
+        back_populates="driver",
+        sa_relationship_kwargs={"foreign_keys": "[Shipment.driver_id]"}
+    )
+    
+    # History updates
+    history_updates: List["ShipmentHistory"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"foreign_keys": "[ShipmentHistory.updated_by]"}
+    )
+    
     def __repr__(self):
         return f"<User {self.email}>"

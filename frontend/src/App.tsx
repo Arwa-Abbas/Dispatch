@@ -1,15 +1,27 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/common/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import DashboardLayout from './components/dashboard/layouts/DashboardLayout';
 import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import Auth from './pages/Auth';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import NotFound from './pages/NotFound';
+
+// Dashboard Components
+import CustomerDashboard from './components/dashboard/customer/CustomerDashboard';
+import CreateShipment from './components/dashboard/customer/CreateShipment';
+import MyShipments from './components/dashboard/customer/MyShipments';
+import ShipmentDetails from './components/dashboard/customer/ShipmentDetails';
+import DriverDashboard from './components/dashboard/driver/DriverDashboard';
+import AssignedShipments from './components/dashboard/driver/AssignedShipments';
+import DeliveryDetails from './components/dashboard/driver/DeliveryDetails';
+import AdminDashboard from './components/dashboard/admin/AdminDashboard';
+import ManageUsers from './components/dashboard/admin/ManageUsers';
+import AllShipments from './components/dashboard/admin/AllShipments';
+import AssignDriver from './components/dashboard/admin/AssignDriver';
+import ProfileSettings from './components/dashboard/common/ProfileSettings';
 
 function App() {
   return (
@@ -19,47 +31,41 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
-            
-            {/* Auth Routes */}
-            <Route path="/auth" element={<Auth />}>
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-            </Route>
-            
-            {/* Redirect /login and /register to /auth/login and /auth/register */}
-            <Route path="/login" element={<Navigate to="/auth/login" replace />} />
-            <Route path="/register" element={<Navigate to="/auth/register" replace />} />
-            
-            {/* Protected Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Protected Dashboard Routes */}
             <Route
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <DashboardLayout />
                 </ProtectedRoute>
               }
-            />
-            
-            {/* Admin Only Routes */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <div>Admin Panel (Coming Soon)</div>
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* Driver Only Routes */}
-            <Route
-              path="/driver/*"
-              element={
-                <ProtectedRoute requiredRole="DRIVER">
-                  <div>Driver Panel (Coming Soon)</div>
-                </ProtectedRoute>
-              }
-            />
-            
+            >
+              <Route index element={<CustomerDashboard />} />
+              
+              {/* Customer Routes */}
+              <Route path="create-shipment" element={<CreateShipment />} />
+              <Route path="my-shipments" element={<MyShipments />} />
+              <Route path="shipment/:id" element={<ShipmentDetails />} />
+              
+              {/* Driver Routes */}
+              <Route path="driver" element={<DriverDashboard />} />
+              <Route path="assigned-shipments" element={<AssignedShipments />} />
+              <Route path="delivery/:id" element={<DeliveryDetails />} />
+              
+              {/* Admin Routes */}
+              <Route path="admin" element={<AdminDashboard />} />
+              <Route path="users" element={<ManageUsers />} />
+              <Route path="all-shipments" element={<AllShipments />} />
+              <Route path="assign-driver" element={<AssignDriver />} />
+              
+              {/* Common Routes */}
+              <Route path="profile" element={<ProfileSettings />} />
+              <Route path="settings" element={<ProfileSettings />} />
+            </Route>
+
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>

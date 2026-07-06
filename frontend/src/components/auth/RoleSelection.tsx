@@ -1,19 +1,17 @@
 import React from 'react';
-import { UserIcon, TruckIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
+import { UserIcon, TruckIcon, HomeIcon } from '@heroicons/react/24/outline';
 
 interface RoleSelectionProps {
   onSelectRole: (role: 'CUSTOMER' | 'DRIVER') => void;
 }
 
 const RoleSelection: React.FC<RoleSelectionProps> = ({ onSelectRole }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <div className="flex justify-center mb-4">
-          <div className="p-3 bg-primary-100 rounded-full">
-            <TruckIcon className="h-12 w-12 text-primary-600" />
-          </div>
-        </div>
         <h2 className="text-3xl font-bold text-gray-900">Join Dispatch</h2>
         <p className="mt-2 text-gray-600">Choose how you want to use Dispatch</p>
       </div>
