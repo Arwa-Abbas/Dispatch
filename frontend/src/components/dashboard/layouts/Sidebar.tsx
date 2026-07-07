@@ -311,7 +311,6 @@ const Sidebar: React.FC = () => {
         <div className={`px-4 py-2 border-t border-gray-200 text-center ${
           !isOpen ? 'lg:hidden' : ''
         }`}>
-          <p className="text-xs text-gray-400">Dispatch v1.0.0</p>
         </div>
       </div>
     </>

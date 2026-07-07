@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../../api/api';
+import { useAuth } from '../../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import {
   TruckIcon,
@@ -15,8 +16,18 @@ interface Delivery {
   tracking_number: string;
   status: string;
   receiver_name: string;
-  pickup_address: string;
-  delivery_address: string;
+  pickup_address: {
+    street: string;
+    city: string;
+    state: string;
+    postal_code: string;
+  } | string;
+  delivery_address: {
+    street: string;
+    city: string;
+    state: string;
+    postal_code: string;
+  } | string;
   weight: number;
   delivered_at: string;
   created_at: string;
@@ -25,6 +36,7 @@ interface Delivery {
 const DeliveryHistory: React.FC = () => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,14 +45,19 @@ const DeliveryHistory: React.FC = () => {
 
   const fetchDeliveryHistory = async () => {
     try {
-      const response = await api.get('/shipments');
-      // Filter only delivered shipments for this driver
-      const delivered = response.data.filter(
+      setLoading(true);
+      // Get all shipments assigned to this driver
+      const response = await api.get('/driver/shipments');
+      console.log('Driver shipments:', response.data);
+      
+      // Filter only completed shipments (DELIVERED, CANCELLED, FAILED)
+      const completed = response.data.filter(
         (s: any) => s.status === 'DELIVERED' || s.status === 'CANCELLED' || s.status === 'FAILED'
       );
-      setDeliveries(delivered);
-    } catch (error) {
-      toast.error('Failed to load delivery history');
+      setDeliveries(completed);
+    } catch (error: any) {
+      console.error('Failed to fetch delivery history:', error);
+      toast.error(error.detail || 'Failed to load delivery history');
     } finally {
       setLoading(false);
     }
@@ -65,6 +82,15 @@ const DeliveryHistory: React.FC = () => {
       default:
         return <ClockIcon className="h-5 w-5 text-gray-600" />;
     }
+  };
+
+  const getAddressString = (address: any): string => {
+    if (!address) return 'N/A';
+    if (typeof address === 'string') return address;
+    if (address.street) {
+      return `${address.street}, ${address.city}, ${address.state}`;
+    }
+    return 'N/A';
   };
 
   if (loading) {
@@ -134,11 +160,15 @@ const DeliveryHistory: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-gray-600">Pickup:</span>
-                  <span className="ml-2 font-medium text-gray-900 truncate">{delivery.pickup_address}</span>
+                  <span className="ml-2 font-medium text-gray-900 truncate">
+                    {getAddressString(delivery.pickup_address)}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Delivery:</span>
-                  <span className="ml-2 font-medium text-gray-900 truncate">{delivery.delivery_address}</span>
+                  <span className="ml-2 font-medium text-gray-900 truncate">
+                    {getAddressString(delivery.delivery_address)}
+                  </span>
                 </div>
               </div>
             </div>

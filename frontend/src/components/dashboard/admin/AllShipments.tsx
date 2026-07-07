@@ -57,7 +57,6 @@ const AllShipments: React.FC = () => {
       IN_TRANSIT: 'bg-purple-100 text-purple-700',
       OUT_FOR_DELIVERY: 'bg-orange-100 text-orange-700',
       DELIVERED: 'bg-green-100 text-green-700',
-      CANCELLED: 'bg-red-100 text-red-700',
       FAILED: 'bg-red-100 text-red-700',
     };
     return colors[status] || 'bg-gray-100 text-gray-700';
@@ -67,7 +66,6 @@ const AllShipments: React.FC = () => {
     switch (status) {
       case 'DELIVERED':
         return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
-      case 'CANCELLED':
       case 'FAILED':
         return <XCircleIcon className="h-5 w-5 text-red-600" />;
       case 'PENDING':
@@ -85,7 +83,7 @@ const AllShipments: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const statusOptions = ['ALL', 'PENDING', 'ASSIGNED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
+  const statusOptions = ['ALL', 'PENDING', 'ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'];
 
   if (loading) {
     return (

@@ -196,3 +196,15 @@ class ShipmentService:
             ShipmentHistory.shipment_id == shipment_id
         ).order_by(ShipmentHistory.timestamp.desc())
         return self.session.exec(statement).all()
+    
+    def get_shipment_by_tracking(self, tracking_number: str) -> Optional[Shipment]:
+        """Get shipment by tracking number"""
+        try:
+            statement = select(Shipment).where(Shipment.tracking_number == tracking_number)
+            shipment = self.session.exec(statement).first()
+            if shipment:
+                self.session.refresh(shipment, attribute_names=['pickup_address', 'delivery_address'])
+            return shipment
+        except Exception as e:
+            print(f"Error getting shipment by tracking number: {str(e)}")
+            return None

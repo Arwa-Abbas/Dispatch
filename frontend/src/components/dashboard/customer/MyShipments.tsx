@@ -19,13 +19,25 @@ interface Shipment {
   tracking_number: string;
   status: string;
   receiver_name: string;
-  pickup_address: string;
-  delivery_address: string;
+  pickup_address: {
+    street: string;
+    city: string;
+    state: string;
+    postal_code: string;
+  };
+  delivery_address: {
+    street: string;
+    city: string;
+    state: string;
+    postal_code: string;
+  };
   weight: number;
   package_type: string;
   created_at: string;
   updated_at: string;
   delivered_at?: string;
+  driver_id?: number;
+  driver_name?: string;
 }
 
 const MyShipments: React.FC = () => {
@@ -43,9 +55,19 @@ const MyShipments: React.FC = () => {
   const fetchShipments = async () => {
     try {
       const response = await api.get('/shipments');
-      setShipments(response.data);
-    } catch (error) {
-      toast.error('Failed to load shipments');
+      console.log('Shipments response:', response.data);
+      
+      // If the response is an array, set it directly
+      if (Array.isArray(response.data)) {
+        setShipments(response.data);
+      } else {
+        // If it's a single object or different structure, handle it
+        setShipments(response.data || []);
+      }
+    } catch (error: any) {
+      console.error('Error fetching shipments:', error);
+      toast.error(error.detail || 'Failed to load shipments');
+      setShipments([]);
     } finally {
       setLoading(false);
     }
@@ -59,7 +81,6 @@ const MyShipments: React.FC = () => {
       IN_TRANSIT: 'bg-purple-100 text-purple-700',
       OUT_FOR_DELIVERY: 'bg-orange-100 text-orange-700',
       DELIVERED: 'bg-green-100 text-green-700',
-      CANCELLED: 'bg-red-100 text-red-700',
       FAILED: 'bg-red-100 text-red-700',
     };
     return colors[status] || 'bg-gray-100 text-gray-700';
@@ -69,7 +90,6 @@ const MyShipments: React.FC = () => {
     switch (status) {
       case 'DELIVERED':
         return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
-      case 'CANCELLED':
       case 'FAILED':
         return <XCircleIcon className="h-5 w-5 text-red-600" />;
       case 'PENDING':
@@ -87,7 +107,14 @@ const MyShipments: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const statusOptions = ['ALL', 'PENDING', 'ASSIGNED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
+  const statusOptions = ['ALL', 'PENDING', 'ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'];
+
+  // Stats calculations - removed CANCELLED
+  const totalShipments = shipments.length;
+  const inProgress = shipments.filter(s => !['DELIVERED', 'FAILED'].includes(s.status)).length;
+  const delivered = shipments.filter(s => s.status === 'DELIVERED').length;
+  const pending = shipments.filter(s => s.status === 'PENDING').length;
+  const failed = shipments.filter(s => s.status === 'FAILED').length;
 
   if (loading) {
     return (
@@ -110,6 +137,26 @@ const MyShipments: React.FC = () => {
         >
           + New Shipment
         </button>
+      </div>
+
+      {/* Stats Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Total</p>
+          <p className="text-2xl font-bold text-gray-900">{totalShipments}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">In Progress</p>
+          <p className="text-2xl font-bold text-yellow-600">{inProgress}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Delivered</p>
+          <p className="text-2xl font-bold text-green-600">{delivered}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Pending</p>
+          <p className="text-2xl font-bold text-yellow-600">{pending}</p>
+        </div>
       </div>
 
       {/* Search and Filter */}
@@ -177,6 +224,11 @@ const MyShipments: React.FC = () => {
                     <p className="text-sm text-gray-600">
                       To: {shipment.receiver_name}
                     </p>
+                    {shipment.driver_id && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Driver: #{shipment.driver_id}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
@@ -208,7 +260,9 @@ const MyShipments: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-gray-600">From:</span>
-                  <span className="ml-2 font-medium text-gray-900 truncate">{shipment.pickup_address}</span>
+                  <span className="ml-2 font-medium text-gray-900 truncate">
+                    {shipment.pickup_address?.city || 'N/A'}
+                  </span>
                 </div>
               </div>
             </div>

@@ -70,15 +70,35 @@ const ManageUsers: React.FC = () => {
   };
 
   const handleDeleteUser = async (userId: number) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    // Find the user to check if they're admin
+    const userToDelete = users.find(u => u.id === userId);
+    
+    // Prevent deleting admin users
+    if (userToDelete?.role === 'ADMIN') {
+      toast.error('Cannot delete admin user');
+      return;
+    }
+
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete user "${userToDelete?.full_name}"? This action cannot be undone.`)) {
+      return;
+    }
     
     try {
+      console.log(`Deleting user with ID: ${userId}`);
       await api.delete(`/users/${userId}`);
       toast.success('User deleted successfully');
-      fetchUsers();
+      fetchUsers(); // Refresh the list
     } catch (error: any) {
       console.error('Error deleting user:', error);
-      toast.error(error.detail || 'Failed to delete user');
+      // Show specific error message from backend
+      if (error.detail) {
+        toast.error(error.detail);
+      } else if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Failed to delete user. Please try again.');
+      }
     }
   };
 

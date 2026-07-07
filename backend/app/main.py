@@ -18,7 +18,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware
+# CORS middleware - FIXED for DELETE and all methods
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -39,14 +39,19 @@ app.add_middleware(
         "Origin",
         "User-Agent",
         "X-Requested-With",
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Headers",
+        "Access-Control-Allow-Methods",
     ],
+    expose_headers=["Content-Length", "Content-Type"],
+    max_age=86400,  # 24 hours
 )
 
-# Include routers - MAKE SURE driver_routes IS INCLUDED
+# Include routers
 app.include_router(auth_routes.router, prefix=f"{settings.API_V1_STR}")
 app.include_router(user_routes.router, prefix=f"{settings.API_V1_STR}")
 app.include_router(shipment_routes.router, prefix=f"{settings.API_V1_STR}")
-app.include_router(driver_routes.router, prefix=f"{settings.API_V1_STR}")  # ← THIS IS CRITICAL
+app.include_router(driver_routes.router, prefix=f"{settings.API_V1_STR}")
 
 @app.get("/")
 async def root():

@@ -34,10 +34,14 @@ class ProfileResponse(BaseModel):
     postal_code: str = ""
     country: str = "Pakistan"
     date_of_birth: Optional[datetime] = None
+    # Driver specific fields
+    license_number: str = ""
+    vehicle_type: str = ""
+    vehicle_number: str = ""
+    experience_years: int = 0
 
     class Config:
         from_attributes = True
-
 
 class ProfileUpdate(BaseModel):
     full_name: Optional[str] = Field(None, min_length=2, max_length=100)
@@ -48,7 +52,11 @@ class ProfileUpdate(BaseModel):
     postal_code: Optional[str] = Field(None, min_length=3)
     country: Optional[str] = None
     date_of_birth: Optional[datetime] = None
-
+    # Driver specific fields
+    license_number: Optional[str] = Field(None, min_length=5)
+    vehicle_type: Optional[str] = Field(None, min_length=2)
+    vehicle_number: Optional[str] = Field(None, min_length=4)
+    experience_years: Optional[int] = Field(None, ge=0)
 
 class CustomerResponse(BaseModel):
     id: int

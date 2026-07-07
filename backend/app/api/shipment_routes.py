@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session
+from sqlmodel import Session, select
 from typing import List
 from app.schemas.shipment import ShipmentCreate, ShipmentResponse, ShipmentHistoryResponse
 from app.services.shipment_service import ShipmentService
@@ -58,6 +58,32 @@ async def get_pending_shipments(
     except Exception as e:
         print(f"Error: {str(e)}")
         return []
+
+@router.get("/track/{tracking_number}", response_model=ShipmentResponse)
+async def track_shipment(
+    tracking_number: str,
+    session: Session = Depends(get_session)
+):
+    """Track a shipment by tracking number (Public endpoint)"""
+    try:
+        service = ShipmentService(session)
+        shipment = service.get_shipment_by_tracking(tracking_number)
+        
+        if not shipment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Shipment not found. Please check the tracking number."
+            )
+        
+        return shipment
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error tracking shipment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to track shipment"
+        )
 
 @router.get("/{shipment_id}", response_model=ShipmentResponse)
 async def get_shipment(
