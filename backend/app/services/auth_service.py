@@ -3,9 +3,16 @@ from app.repositories.user_repository import UserRepository
 from app.models.user import User, UserRole
 from app.models.customer import Customer
 from app.models.driver import Driver
-from app.schemas.auth import CustomerRegister, DriverRegister
-from app.core.security import get_password_hash, verify_password, create_access_token
+from app.schemas.auth import CustomerRegister, DriverRegister, UserLogin
+from app.core.security import (
+    get_password_hash, 
+    verify_password, 
+    create_access_token, 
+    create_remember_token,
+    get_token_expiry
+)
 from typing import Optional
+from datetime import timedelta
 
 class AuthService:
     def __init__(self, session: Session):
@@ -79,7 +86,7 @@ class AuthService:
         
         return new_user
     
-    def authenticate_user(self, email: str, password: str) -> Optional[User]:
+    def authenticate_user(self, email: str, password: str, remember_me: bool = False) -> Optional[User]:
         """Authenticate user with email and password"""
         user = self.user_repo.get_user_by_email(email)
         if not user:
@@ -88,13 +95,48 @@ class AuthService:
             return None
         if not user.is_active:
             raise ValueError("User account is deactivated")
+        
+        # Handle remember me - store token in database
+        if remember_me:
+            remember_token = create_remember_token()
+            user.remember_token = remember_token
+            self.session.add(user)
+            self.session.commit()
+            self.session.refresh(user)
+        else:
+            # Clear any existing remember token
+            if user.remember_token:
+                user.remember_token = None
+                self.session.add(user)
+                self.session.commit()
+        
         return user
     
-    def create_user_token(self, user: User) -> str:
-        """Create JWT token for user"""
+    def create_user_token(self, user: User, remember_me: bool = False) -> dict:
+        """Create JWT token for user with appropriate expiry"""
+        expires_in = get_token_expiry(remember_me)
+        
         token_data = {
             "sub": str(user.id),
             "email": user.email,
-            "role": user.role.value
+            "role": user.role.value,
+            "remember_me": remember_me
         }
-        return create_access_token(token_data)
+        
+        access_token = create_access_token(
+            token_data, 
+            expires_delta=timedelta(seconds=expires_in)
+        )
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": expires_in,
+            "remember_me": remember_me
+        }
+    
+    def logout(self, user: User) -> None:
+        """Logout user - clear remember token"""
+        user.remember_token = None
+        self.session.add(user)
+        self.session.commit()

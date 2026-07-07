@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { api } from '../../../api/api';
 import toast from 'react-hot-toast';
@@ -7,21 +7,81 @@ import {
   EnvelopeIcon,
   PhoneIcon,
   MapPinIcon,
+  CalendarIcon,
   PencilIcon,
   CheckIcon,
   XMarkIcon,
+  CameraIcon,
 } from '@heroicons/react/24/outline';
+
+interface ProfileData {
+  full_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  date_of_birth: string;
+}
 
 const ProfileSettings: React.FC = () => {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    full_name: user?.full_name || '',
-    email: user?.email || '',
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<ProfileData>({
+    full_name: '',
+    email: '',
     phone: '',
     address: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    country: '',
+    date_of_birth: '',
   });
-  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      // Get user profile data
+      const response = await api.get('/users/profile');
+      const data = response.data;
+      setFormData({
+        full_name: data.full_name || user?.full_name || '',
+        email: data.email || user?.email || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '',
+        postal_code: data.postal_code || '',
+        country: data.country || 'Pakistan',
+        date_of_birth: data.date_of_birth || '',
+      });
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+      // Fallback to user data
+      if (user) {
+        setFormData({
+          full_name: user.full_name || '',
+          email: user.email || '',
+          phone: '',
+          address: '',
+          city: '',
+          state: '',
+          postal_code: '',
+          country: 'Pakistan',
+          date_of_birth: '',
+        });
+      }
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -33,45 +93,83 @@ const ProfileSettings: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await api.put(`/users/${user?.id}`, {
+      // Update user profile
+      const updateData = {
         full_name: formData.full_name,
-        email: formData.email,
-      });
-      updateUser(response.data);
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        postal_code: formData.postal_code,
+        country: formData.country,
+        date_of_birth: formData.date_of_birth || null,
+      };
+
+      const response = await api.put('/users/profile', updateData);
+      
+      // Update user in context
+      if (user) {
+        const updatedUser = {
+          ...user,
+          full_name: formData.full_name,
+        };
+        updateUser(updatedUser);
+      }
+      
       toast.success('Profile updated successfully!');
       setIsEditing(false);
-    } catch (error) {
-      toast.error('Failed to update profile');
+    } catch (error: any) {
+      toast.error(error.detail || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-        <p className="text-gray-600">Manage your account information</p>
+        <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+        <p className="text-gray-600">Manage your personal details and contact information</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Profile Header */}
-        <div className="bg-primary-600 px-6 py-8">
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-8 relative">
           <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-              <span className="text-3xl font-bold text-primary-600">
-                {user?.full_name?.charAt(0) || 'U'}
-              </span>
+            <div className="relative">
+              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-3xl font-bold text-primary-600">
+                  {formData.full_name?.charAt(0) || 'U'}
+                </span>
+              </div>
+              <button className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors">
+                <CameraIcon className="h-4 w-4 text-gray-600" />
+              </button>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">{user?.full_name}</h2>
-              <p className="text-primary-100">{user?.role}</p>
+              <h2 className="text-2xl font-bold text-white">{formData.full_name || 'User'}</h2>
+              <p className="text-primary-100">{user?.role || 'Customer'}</p>
             </div>
           </div>
         </div>
 
         {/* Profile Form */}
         <div className="p-6">
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="rounded-lg border border-gray-200 p-3">
+              <p className="text-sm text-gray-500">Role</p>
+              <p className="font-semibold text-gray-900">{user?.role || 'CUSTOMER'}</p>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-3">
+              <p className="text-sm text-gray-500">Account Status</p>
+              <p className="font-semibold text-gray-900">{user?.is_active ? 'Active' : 'Inactive'}</p>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-3">
+              <p className="text-sm text-gray-500">Joined</p>
+              <p className="font-semibold text-gray-900">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -86,6 +184,7 @@ const ProfileSettings: React.FC = () => {
                       onChange={handleChange}
                       disabled={!isEditing}
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-600"
+                      placeholder="Your full name"
                     />
                   </div>
                 </div>
@@ -97,16 +196,17 @@ const ProfileSettings: React.FC = () => {
                       type="email"
                       name="email"
                       value={formData.email}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-600"
+                      disabled
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                      placeholder="Your email"
                     />
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">Email verification will be available soon</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                 <div className="relative">
                   <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
@@ -115,8 +215,8 @@ const ProfileSettings: React.FC = () => {
                     value={formData.phone}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    placeholder="+92 300 1234567"
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-600"
+                    placeholder="+92 300 1234567"
                   />
                 </div>
               </div>
@@ -131,7 +231,61 @@ const ProfileSettings: React.FC = () => {
                     value={formData.address}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    placeholder="House #, Street, City"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-600"
+                    placeholder="House #, Street, Area"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-600"
+                    placeholder="Karachi"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-600"
+                    placeholder="Sindh"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                  <input
+                    type="text"
+                    name="postal_code"
+                    value={formData.postal_code}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-600"
+                    placeholder="75000"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                <div className="relative">
+                  <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={formData.date_of_birth}
+                    onChange={handleChange}
+                    disabled={!isEditing}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-600"
                   />
                 </div>
@@ -139,19 +293,14 @@ const ProfileSettings: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="mt-6 flex items-center justify-end space-x-3">
+            <div className="mt-6 flex items-center justify-end space-x-3 border-t border-gray-200 pt-6">
               {isEditing ? (
                 <>
                   <button
                     type="button"
                     onClick={() => {
                       setIsEditing(false);
-                      setFormData({
-                        full_name: user?.full_name || '',
-                        email: user?.email || '',
-                        phone: '',
-                        address: '',
-                      });
+                      fetchUserProfile();
                     }}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
                   >
@@ -179,43 +328,6 @@ const ProfileSettings: React.FC = () => {
               )}
             </div>
           </form>
-        </div>
-      </div>
-
-      {/* Account Info */}
-      <div className="mt-6 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Role</span>
-            <p className="font-medium text-gray-900">{user?.role}</p>
-          </div>
-          <div>
-            <span className="text-gray-600">Account Status</span>
-            <p className="font-medium text-gray-900">
-              {user?.is_active ? (
-                <span className="text-green-600">Active</span>
-              ) : (
-                <span className="text-red-600">Inactive</span>
-              )}
-            </p>
-          </div>
-          <div>
-            <span className="text-gray-600">Email Verified</span>
-            <p className="font-medium text-gray-900">
-              {user?.is_verified ? (
-                <span className="text-green-600">Yes</span>
-              ) : (
-                <span className="text-yellow-600">No</span>
-              )}
-            </p>
-          </div>
-          <div>
-            <span className="text-gray-600">Joined</span>
-            <p className="font-medium text-gray-900">
-              {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-            </p>
-          </div>
         </div>
       </div>
     </div>

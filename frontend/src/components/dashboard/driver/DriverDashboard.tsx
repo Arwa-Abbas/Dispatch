@@ -15,8 +15,8 @@ interface Delivery {
   id: number;
   tracking_number: string;
   status: string;
-  pickup_address: string;
-  delivery_address: string;
+  pickup_address: any;
+  delivery_address: any;
   receiver_name: string;
   receiver_phone: string;
   weight: number;
@@ -35,12 +35,10 @@ const DriverDashboard: React.FC = () => {
 
   const fetchDeliveries = async () => {
     try {
-      const response = await api.get('/shipments');
-      // Filter only assigned deliveries for this driver
-      const assignedDeliveries = response.data.filter(
-        (d: any) => d.driver_id === user?.id
-      );
-      setDeliveries(assignedDeliveries);
+      // Use the driver-specific endpoint
+      const response = await api.get('/driver/shipments');
+      console.log('Driver shipments:', response.data);
+      setDeliveries(response.data);
     } catch (error) {
       console.error('Failed to fetch deliveries:', error);
     } finally {
@@ -83,7 +81,7 @@ const DriverDashboard: React.FC = () => {
     },
     { 
       label: 'Pending Pickup', 
-      value: deliveries.filter(d => d.status === 'ASSIGNED').length, 
+      value: deliveries.filter(d => d.status === 'ASSIGNED' && !d.driver_id).length, 
       icon: ExclamationCircleIcon, 
       color: 'bg-red-500' 
     },
@@ -148,11 +146,9 @@ const DriverDashboard: React.FC = () => {
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <MapPinIcon className="h-4 w-4 mr-1" />
-                      <span>{delivery.pickup_address} → {delivery.delivery_address}</span>
+                      <span>To: {delivery.receiver_name}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
-                      <span>To: {delivery.receiver_name}</span>
-                      <span className="mx-2">•</span>
                       <span>{delivery.weight} kg</span>
                     </div>
                   </div>

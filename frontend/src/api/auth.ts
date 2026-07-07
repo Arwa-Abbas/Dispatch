@@ -9,20 +9,11 @@ import type {
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
-    const formData = new URLSearchParams();
-    formData.append('username', data.email);
-    formData.append('password', data.password);
-    
-    const response = await api.post('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
+    const response = await api.post('/auth/login', data);
     return response.data;
   },
 
   registerCustomer: async (data: CustomerRegisterData): Promise<User> => {
-    // Make sure all fields are sent correctly
     const payload = {
       full_name: data.full_name,
       email: data.email,
@@ -65,6 +56,16 @@ export const authApi = {
 
   getCurrentUser: async (): Promise<User> => {
     const response = await api.get('/auth/me');
+    return response.data;
+  },
+
+  verifyToken: async (): Promise<{ valid: boolean; user: User }> => {
+    const response = await api.post('/auth/verify');
+    return response.data;
+  },
+
+  refreshToken: async (): Promise<AuthResponse> => {
+    const response = await api.post('/auth/refresh');
     return response.data;
   },
 };

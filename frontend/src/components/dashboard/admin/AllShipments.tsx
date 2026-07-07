@@ -9,6 +9,7 @@ import {
   CheckCircleIcon,
   ClockIcon,
   XCircleIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
 
 interface Shipment {
@@ -18,8 +19,8 @@ interface Shipment {
   customer_id: number;
   driver_id: number;
   receiver_name: string;
-  pickup_address: string;
-  delivery_address: string;
+  pickup_address: any;
+  delivery_address: any;
   weight: number;
   package_type: string;
   created_at: string;
@@ -101,6 +102,32 @@ const AllShipments: React.FC = () => {
         <p className="text-gray-600">View and manage all shipments in the system</p>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Total</p>
+          <p className="text-2xl font-bold text-gray-900">{shipments.length}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Pending</p>
+          <p className="text-2xl font-bold text-yellow-600">
+            {shipments.filter(s => s.status === 'PENDING' || s.status === 'ASSIGNED').length}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">In Transit</p>
+          <p className="text-2xl font-bold text-purple-600">
+            {shipments.filter(s => ['PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY'].includes(s.status)).length}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Delivered</p>
+          <p className="text-2xl font-bold text-green-600">
+            {shipments.filter(s => s.status === 'DELIVERED').length}
+          </p>
+        </div>
+      </div>
+
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
@@ -139,8 +166,9 @@ const AllShipments: React.FC = () => {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tracking</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase trading-wider">Receiver</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receiver</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -160,6 +188,11 @@ const AllShipments: React.FC = () => {
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(shipment.status)}`}>
                         {shipment.status.replace('_', ' ')}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {shipment.driver_id ? `Driver #${shipment.driver_id}` : (
+                        <span className="text-yellow-600">Not Assigned</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">{shipment.weight} kg</td>
                     <td className="px-6 py-4 text-sm text-gray-600">

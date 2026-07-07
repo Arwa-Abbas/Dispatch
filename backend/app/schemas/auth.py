@@ -1,21 +1,12 @@
-# app/schemas/auth.py
 from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional
 from datetime import datetime
 from app.models.user import UserRole
 
-# Base registration schemas
-class UserRegister(BaseModel):
-    full_name: str = Field(min_length=2, max_length=100)
+class UserLogin(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6)
-    role: UserRole
-    
-    @validator('password')
-    def validate_password(cls, v):
-        if len(v) < 6:
-            raise ValueError('Password must be at least 6 characters')
-        return v
+    remember_me: bool = False
 
 class CustomerRegister(BaseModel):
     full_name: str = Field(min_length=2, max_length=100)
@@ -52,14 +43,6 @@ class DriverRegister(BaseModel):
             raise ValueError('Password must be at least 6 characters')
         return v
 
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=6)
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
 class TokenData(BaseModel):
     user_id: int
     email: str
@@ -69,6 +52,8 @@ class AuthResponse(BaseModel):
     access_token: str
     token_type: str
     user: "UserResponse"
+    expires_in: int
+    remember_me: bool = False
 
 # Import at the end to avoid circular import
 from app.schemas.user import UserResponse

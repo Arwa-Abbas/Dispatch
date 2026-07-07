@@ -112,7 +112,7 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
         <p className="mt-1 text-sm text-gray-600">Start sending packages with Dispatch</p>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} method="post" autoComplete="on">
         {error && (
           <div className="rounded-md bg-red-50 p-3 border border-red-200">
             <div className="text-sm text-red-700">{error}</div>
@@ -121,10 +121,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Full Name *</label>
+            <label htmlFor="cust-full-name" className="block text-sm font-medium text-gray-700">Full Name *</label>
             <input
+              id="cust-full-name"
               type="text"
               name="full_name"
+              autoComplete="name"
               required
               value={formData.full_name}
               onChange={handleChange}
@@ -134,10 +136,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email *</label>
+            <label htmlFor="cust-email" className="block text-sm font-medium text-gray-700">Email *</label>
             <input
+              id="cust-email"
               type="email"
               name="email"
+              autoComplete="email"
               required
               value={formData.email}
               onChange={handleChange}
@@ -150,10 +154,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password *</label>
+            <label htmlFor="cust-password" className="block text-sm font-medium text-gray-700">Password *</label>
             <input
+              id="cust-password"
               type="password"
               name="password"
+              autoComplete="new-password"
               required
               value={formData.password}
               onChange={handleChange}
@@ -163,10 +169,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Confirm Password *</label>
+            <label htmlFor="cust-confirm-password" className="block text-sm font-medium text-gray-700">Confirm Password *</label>
             <input
+              id="cust-confirm-password"
               type="password"
               name="confirmPassword"
+              autoComplete="new-password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -178,10 +186,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Phone Number *</label>
+          <label htmlFor="cust-phone" className="block text-sm font-medium text-gray-700">Phone Number *</label>
           <input
+            id="cust-phone"
             type="tel"
             name="phone"
+            autoComplete="tel"
             required
             value={formData.phone}
             onChange={handleChange}
@@ -192,10 +202,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Street Address *</label>
+          <label htmlFor="cust-address" className="block text-sm font-medium text-gray-700">Street Address *</label>
           <input
+            id="cust-address"
             type="text"
             name="address"
+            autoComplete="street-address"
             required
             value={formData.address}
             onChange={handleChange}
@@ -207,10 +219,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">City *</label>
+            <label htmlFor="cust-city" className="block text-sm font-medium text-gray-700">City *</label>
             <input
+              id="cust-city"
               type="text"
               name="city"
+              autoComplete="address-level2"
               required
               value={formData.city}
               onChange={handleChange}
@@ -220,10 +234,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">State *</label>
+            <label htmlFor="cust-state" className="block text-sm font-medium text-gray-700">State *</label>
             <input
+              id="cust-state"
               type="text"
               name="state"
+              autoComplete="address-level1"
               required
               value={formData.state}
               onChange={handleChange}
@@ -233,10 +249,12 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onBack }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Postal Code *</label>
+            <label htmlFor="cust-postal" className="block text-sm font-medium text-gray-700">Postal Code *</label>
             <input
+              id="cust-postal"
               type="text"
               name="postal_code"
+              autoComplete="postal-code"
               required
               value={formData.postal_code}
               onChange={handleChange}

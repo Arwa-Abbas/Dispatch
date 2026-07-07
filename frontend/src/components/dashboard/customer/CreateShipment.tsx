@@ -59,7 +59,32 @@ const CreateShipment: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await api.post('/shipments', formData);
+      const payload = {
+        sender_name: formData.sender_name,
+        sender_phone: formData.sender_phone,
+        receiver_name: formData.receiver_name,
+        receiver_phone: formData.receiver_phone,
+        weight: formData.weight,
+        package_type: formData.package_type,
+        description: formData.description,
+        notes: formData.notes,
+        pickup_address: {
+          street: formData.pickup_address,
+          city: formData.pickup_city,
+          state: formData.pickup_state,
+          postal_code: formData.pickup_postal_code,
+          country: 'Pakistan',
+        },
+        delivery_address: {
+          street: formData.delivery_address,
+          city: formData.delivery_city,
+          state: formData.delivery_state,
+          postal_code: formData.delivery_postal_code,
+          country: 'Pakistan',
+        },
+      };
+
+      await api.post('/shipments', payload);
       toast.success('Shipment created successfully!');
       navigate('/dashboard/my-shipments');
     } catch (error: any) {

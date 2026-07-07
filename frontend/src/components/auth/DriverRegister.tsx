@@ -108,7 +108,7 @@ const DriverRegister: React.FC<DriverRegisterProps> = ({ onBack }) => {
         <p className="mt-1 text-sm text-gray-600">Start delivering with Dispatch</p>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} method="post" autoComplete="on">
         {error && (
           <div className="rounded-md bg-red-50 p-3 border border-red-200">
             <div className="text-sm text-red-700">{error}</div>
@@ -117,10 +117,12 @@ const DriverRegister: React.FC<DriverRegisterProps> = ({ onBack }) => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Full Name *</label>
+            <label htmlFor="drv-full-name" className="block text-sm font-medium text-gray-700">Full Name *</label>
             <input
+              id="drv-full-name"
               type="text"
               name="full_name"
+              autoComplete="name"
               required
               value={formData.full_name}
               onChange={handleChange}
@@ -130,10 +132,12 @@ const DriverRegister: React.FC<DriverRegisterProps> = ({ onBack }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email *</label>
+            <label htmlFor="drv-email" className="block text-sm font-medium text-gray-700">Email *</label>
             <input
+              id="drv-email"
               type="email"
               name="email"
+              autoComplete="email"
               required
               value={formData.email}
               onChange={handleChange}
@@ -146,10 +150,12 @@ const DriverRegister: React.FC<DriverRegisterProps> = ({ onBack }) => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password *</label>
+            <label htmlFor="drv-password" className="block text-sm font-medium text-gray-700">Password *</label>
             <input
+              id="drv-password"
               type="password"
               name="password"
+              autoComplete="new-password"
               required
               value={formData.password}
               onChange={handleChange}
@@ -159,10 +165,12 @@ const DriverRegister: React.FC<DriverRegisterProps> = ({ onBack }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Confirm Password *</label>
+            <label htmlFor="drv-confirm-password" className="block text-sm font-medium text-gray-700">Confirm Password *</label>
             <input
+              id="drv-confirm-password"
               type="password"
               name="confirmPassword"
+              autoComplete="new-password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -174,10 +182,12 @@ const DriverRegister: React.FC<DriverRegisterProps> = ({ onBack }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Phone Number *</label>
+          <label htmlFor="drv-phone" className="block text-sm font-medium text-gray-700">Phone Number *</label>
           <input
+            id="drv-phone"
             type="tel"
             name="phone"
+            autoComplete="tel"
             required
             value={formData.phone}
             onChange={handleChange}

@@ -21,20 +21,13 @@ class Shipment(SQLModel, table=True):
     customer_id: int = Field(foreign_key="users.id")
     driver_id: Optional[int] = Field(default=None, foreign_key="users.id")
     
-    # Shipment details
+    pickup_address_id: int = Field(foreign_key="addresses.id")
+    delivery_address_id: int = Field(foreign_key="addresses.id")
+    
     sender_name: str = Field(max_length=100)
     sender_phone: str = Field(max_length=20)
-    pickup_address: str = Field(max_length=255)
-    pickup_city: str = Field(max_length=100)
-    pickup_state: str = Field(max_length=100)
-    pickup_postal_code: str = Field(max_length=20)
-    
     receiver_name: str = Field(max_length=100)
     receiver_phone: str = Field(max_length=20)
-    delivery_address: str = Field(max_length=255)
-    delivery_city: str = Field(max_length=100)
-    delivery_state: str = Field(max_length=100)
-    delivery_postal_code: str = Field(max_length=20)
     
     weight: float = Field(ge=0)
     package_type: str = Field(max_length=50)
@@ -47,7 +40,7 @@ class Shipment(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     delivered_at: Optional[datetime] = None
     
-    # Relationships with explicit foreign keys
+    # Relationships
     customer: Optional["User"] = Relationship(
         back_populates="shipments_as_customer",
         sa_relationship_kwargs={"foreign_keys": "[Shipment.customer_id]"}
@@ -56,10 +49,15 @@ class Shipment(SQLModel, table=True):
         back_populates="shipments_as_driver",
         sa_relationship_kwargs={"foreign_keys": "[Shipment.driver_id]"}
     )
-    history: List["ShipmentHistory"] = Relationship(
-        back_populates="shipment",
-        sa_relationship_kwargs={"foreign_keys": "[ShipmentHistory.shipment_id]"}
+    pickup_address: Optional["Address"] = Relationship(
+        back_populates="pickup_shipments",
+        sa_relationship_kwargs={"foreign_keys": "[Shipment.pickup_address_id]"}
     )
+    delivery_address: Optional["Address"] = Relationship(
+        back_populates="delivery_shipments",
+        sa_relationship_kwargs={"foreign_keys": "[Shipment.delivery_address_id]"}
+    )
+    history: List["ShipmentHistory"] = Relationship(back_populates="shipment")
 
 class ShipmentHistory(SQLModel, table=True):
     __tablename__ = "shipment_history"
@@ -72,10 +70,7 @@ class ShipmentHistory(SQLModel, table=True):
     remarks: Optional[str] = Field(max_length=500)
     
     # Relationships
-    shipment: Optional["Shipment"] = Relationship(
-        back_populates="history",
-        sa_relationship_kwargs={"foreign_keys": "[ShipmentHistory.shipment_id]"}
-    )
+    shipment: Optional["Shipment"] = Relationship(back_populates="history")
     user: Optional["User"] = Relationship(
         back_populates="history_updates",
         sa_relationship_kwargs={"foreign_keys": "[ShipmentHistory.updated_by]"}

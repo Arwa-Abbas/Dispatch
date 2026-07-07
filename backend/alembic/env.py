@@ -9,11 +9,13 @@ from sqlalchemy import pool
 from alembic import context
 from sqlmodel import SQLModel
 
-# Import ALL models here - this is important!
+# Import ALL models here
 from app.models.user import User
 from app.models.customer import Customer
 from app.models.driver import Driver
+from app.models.address import Address
 from app.models.shipment import Shipment, ShipmentHistory
+from app.models.notification import Notification
 
 from app.core.config import settings
 

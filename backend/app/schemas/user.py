@@ -24,6 +24,32 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
 
+class ProfileResponse(BaseModel):
+    full_name: str
+    email: EmailStr
+    phone: str = ""
+    address: str = ""
+    city: str = ""
+    state: str = ""
+    postal_code: str = ""
+    country: str = "Pakistan"
+    date_of_birth: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProfileUpdate(BaseModel):
+    full_name: Optional[str] = Field(None, min_length=2, max_length=100)
+    phone: Optional[str] = Field(None, min_length=10, max_length=20)
+    address: Optional[str] = Field(None, min_length=5)
+    city: Optional[str] = Field(None, min_length=2)
+    state: Optional[str] = Field(None, min_length=2)
+    postal_code: Optional[str] = Field(None, min_length=3)
+    country: Optional[str] = None
+    date_of_birth: Optional[datetime] = None
+
+
 class CustomerResponse(BaseModel):
     id: int
     user_id: int

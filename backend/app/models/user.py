@@ -18,14 +18,13 @@ class User(SQLModel, table=True):
     role: UserRole = Field(default=UserRole.CUSTOMER)
     is_active: bool = Field(default=True)
     is_verified: bool = Field(default=False)
+    remember_token: Optional[str] = Field(max_length=255, default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     
     # Relationships
     customer_profile: Optional["Customer"] = Relationship(back_populates="user")
     driver_profile: Optional["Driver"] = Relationship(back_populates="user")
-    
-    # Shipment relationships with explicit foreign keys
     shipments_as_customer: List["Shipment"] = Relationship(
         back_populates="customer",
         sa_relationship_kwargs={"foreign_keys": "[Shipment.customer_id]"}
@@ -34,8 +33,6 @@ class User(SQLModel, table=True):
         back_populates="driver",
         sa_relationship_kwargs={"foreign_keys": "[Shipment.driver_id]"}
     )
-    
-    # History updates
     history_updates: List["ShipmentHistory"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"foreign_keys": "[ShipmentHistory.updated_by]"}

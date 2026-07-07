@@ -15,11 +15,11 @@ import {
   UserGroupIcon,
   Bars3Icon,
   XMarkIcon,
-  ShoppingBagIcon,
+  ChatBubbleLeftRightIcon,
   MapPinIcon,
   DocumentTextIcon,
   BellIcon,
-  ChatBubbleLeftRightIcon,
+  ShoppingBagIcon,
 } from '@heroicons/react/24/outline';
 
 interface MenuItem {
@@ -57,35 +57,38 @@ const Sidebar: React.FC = () => {
 
   // Get menu items based on role
   const getMenuItems = (): MenuItem[] => {
-    const commonItems: MenuItem[] = [
-      { path: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
-      { path: '/dashboard/profile', icon: UserIcon, label: 'Profile' },
-      { path: '/dashboard/settings', icon: Cog6ToothIcon, label: 'Settings' },
-    ];
+    const role = user?.role || 'CUSTOMER';
 
-    const roleSpecificItems: Record<string, MenuItem[]> = {
-      ADMIN: [
+    // Admin menu - Dashboard (with analytics), Users, Shipments, Assign Driver
+    if (role === 'ADMIN') {
+      return [
+        { path: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
         { path: '/dashboard/users', icon: UsersIcon, label: 'Manage Users' },
         { path: '/dashboard/all-shipments', icon: QueueListIcon, label: 'All Shipments' },
         { path: '/dashboard/assign-driver', icon: UserGroupIcon, label: 'Assign Driver' },
-        { path: '/dashboard/admin', icon: ChartBarIcon, label: 'Analytics' },
-      ],
-      DRIVER: [
-        { path: '/dashboard/assigned-shipments', icon: TruckIcon, label: 'My Deliveries' },
-        { path: '/dashboard/driver', icon: ClipboardDocumentListIcon, label: 'Dashboard' },
-        { path: '/dashboard/delivery-history', icon: DocumentTextIcon, label: 'History' },
-      ],
-      CUSTOMER: [
-        { path: '/dashboard/create-shipment', icon: PlusCircleIcon, label: 'Create Shipment' },
-        { path: '/dashboard/my-shipments', icon: ClipboardDocumentListIcon, label: 'My Shipments' },
-        { path: '/dashboard/track', icon: MapPinIcon, label: 'Track Shipment' },
-      ],
-    };
+      ];
+    }
 
-    const role = user?.role || 'CUSTOMER';
-    const items = [...commonItems, ...(roleSpecificItems[role] || [])];
-    
-    return items;
+    // Driver menu
+    if (role === 'DRIVER') {
+      return [
+        { path: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
+        { path: '/dashboard/assigned-shipments', icon: TruckIcon, label: 'My Deliveries' },
+        { path: '/dashboard/delivery-history', icon: DocumentTextIcon, label: 'History' },
+        { path: '/dashboard/profile', icon: UserIcon, label: 'Profile' },
+        { path: '/dashboard/settings', icon: Cog6ToothIcon, label: 'Settings' },
+      ];
+    }
+
+    // Customer menu (default)
+    return [
+      { path: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
+      { path: '/dashboard/create-shipment', icon: PlusCircleIcon, label: 'Create Shipment' },
+      { path: '/dashboard/my-shipments', icon: ClipboardDocumentListIcon, label: 'My Shipments' },
+      { path: '/dashboard/track', icon: MapPinIcon, label: 'Track Shipment' },
+      { path: '/dashboard/profile', icon: UserIcon, label: 'Profile' },
+      { path: '/dashboard/settings', icon: Cog6ToothIcon, label: 'Settings' },
+    ];
   };
 
   const menuItems = getMenuItems();
@@ -96,6 +99,16 @@ const Sidebar: React.FC = () => {
       return location.pathname === '/dashboard';
     }
     return location.pathname.startsWith(path);
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user?.full_name) return 'U';
+    const names = user.full_name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return names[0][0].toUpperCase();
   };
 
   return (
@@ -124,7 +137,7 @@ const Sidebar: React.FC = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col h-full ${
+        className={`fixed lg:static inset-y-0 left-0 z-40 bg-white shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col h-full ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0`}
         style={{ width: isOpen ? '16rem' : '5rem' }}
@@ -174,7 +187,7 @@ const Sidebar: React.FC = () => {
           <div className={`flex items-center ${!isOpen ? 'lg:justify-center' : ''} space-x-3`}>
             <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-semibold text-lg">
-                {user?.full_name?.charAt(0) || 'U'}
+                {getUserInitials()}
               </span>
             </div>
             <div className={`flex-1 min-w-0 transition-all duration-300 ${
@@ -235,9 +248,9 @@ const Sidebar: React.FC = () => {
           </ul>
         </nav>
 
-        {/* Bottom Section */}
+        {/* Bottom Section - Notifications and Support for ALL users */}
         <div className="p-4 border-t border-gray-200">
-          {/* Notifications */}
+          {/* Notifications - visible for all users */}
           <button
             className={`flex items-center space-x-3 w-full px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors ${
               !isOpen ? 'lg:justify-center lg:space-x-0' : ''
@@ -255,11 +268,11 @@ const Sidebar: React.FC = () => {
             <span className={`ml-auto bg-red-500 text-white text-xs font-medium px-2 py-0.5 rounded-full ${
               !isOpen ? 'lg:hidden' : ''
             }`}>
-              3
+              0
             </span>
           </button>
 
-          {/* Support */}
+          {/* Support - visible for all users */}
           <button
             className={`flex items-center space-x-3 w-full px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors mt-1 ${
               !isOpen ? 'lg:justify-center lg:space-x-0' : ''
