@@ -248,7 +248,7 @@ const Sidebar: React.FC = () => {
           </ul>
         </nav>
 
-        {/* Bottom Section - Notifications and Support for ALL users */}
+        {/* Bottom Section - Notifications, Support, and Home for ALL users */}
         <div className="p-4 border-t border-gray-200">
           {/* Notifications - visible for all users */}
           <button
@@ -286,6 +286,26 @@ const Sidebar: React.FC = () => {
               !isOpen ? 'lg:hidden' : ''
             }`}>
               Support
+            </span>
+          </button>
+
+          {/* Home - visible for all users (NEW) */}
+          <button
+            className={`flex items-center space-x-3 w-full px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors mt-1 ${
+              !isOpen ? 'lg:justify-center lg:space-x-0' : ''
+            }`}
+            onClick={() => {
+              closeSidebar();
+              navigate('/');
+            }}
+          >
+            <HomeIcon className={`h-5 w-5 flex-shrink-0 text-gray-500 ${
+              !isOpen ? 'lg:mr-0' : ''
+            }`} />
+            <span className={`font-medium transition-all duration-300 ${
+              !isOpen ? 'lg:hidden' : ''
+            }`}>
+              Home
             </span>
           </button>
 

@@ -82,13 +82,11 @@ function App() {
               <Route path="track" element={<TrackShipment />} />
               
               {/* Driver Routes */}
-              <Route path="driver" element={<DriverDashboard />} />
               <Route path="assigned-shipments" element={<AssignedShipments />} />
               <Route path="delivery/:id" element={<DeliveryDetails />} />
               <Route path="delivery-history" element={<DeliveryHistory />} />
               
-              {/* Admin Routes - Admin can access these */}
-              <Route path="admin" element={<AdminDashboard />} />
+              {/* Admin Routes */}
               <Route path="users" element={<ManageUsers />} />
               <Route path="all-shipments" element={<AllShipments />} />
               <Route path="assign-driver" element={<AssignDriver />} />
