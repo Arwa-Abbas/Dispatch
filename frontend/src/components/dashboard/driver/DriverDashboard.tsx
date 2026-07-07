@@ -10,17 +10,28 @@ import {
   MapPinIcon,
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 interface Delivery {
   id: number;
   tracking_number: string;
   status: string;
-  pickup_address: any;
-  delivery_address: any;
+  pickup_address: {
+    street: string;
+    city: string;
+    state: string;
+  };
+  delivery_address: {
+    street: string;
+    city: string;
+    state: string;
+  };
   receiver_name: string;
   receiver_phone: string;
   weight: number;
   created_at: string;
+  sender_name: string;
+  sender_phone: string;
 }
 
 const DriverDashboard: React.FC = () => {
@@ -35,12 +46,14 @@ const DriverDashboard: React.FC = () => {
 
   const fetchDeliveries = async () => {
     try {
-      // Use the driver-specific endpoint
+      setLoading(true);
+      console.log('Fetching driver shipments...');
       const response = await api.get('/driver/shipments');
-      console.log('Driver shipments:', response.data);
+      console.log('Driver shipments response:', response.data);
       setDeliveries(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch deliveries:', error);
+      toast.error(error.detail || 'Failed to load deliveries');
     } finally {
       setLoading(false);
     }
@@ -60,6 +73,33 @@ const DriverDashboard: React.FC = () => {
     return colors[status] || 'bg-gray-100 text-gray-700';
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'DELIVERED':
+        return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
+      case 'CANCELLED':
+      case 'FAILED':
+        return <ExclamationCircleIcon className="h-5 w-5 text-red-600" />;
+      case 'ASSIGNED':
+        return <ClockIcon className="h-5 w-5 text-blue-600" />;
+      default:
+        return <TruckIcon className="h-5 w-5 text-purple-600" />;
+    }
+  };
+
+  const getStatusSteps = (status: string) => {
+    const steps = ['ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+    const currentIndex = steps.indexOf(status);
+    return steps.map((step, index) => ({
+      step,
+      completed: index <= currentIndex,
+      current: index === currentIndex,
+    }));
+  };
+
+  const activeDeliveries = deliveries.filter(d => !['DELIVERED', 'CANCELLED', 'FAILED'].includes(d.status));
+  const completedDeliveries = deliveries.filter(d => d.status === 'DELIVERED');
+
   const stats = [
     { 
       label: 'Total Deliveries', 
@@ -69,19 +109,19 @@ const DriverDashboard: React.FC = () => {
     },
     { 
       label: 'In Progress', 
-      value: deliveries.filter(d => !['DELIVERED', 'CANCELLED', 'FAILED'].includes(d.status)).length, 
+      value: activeDeliveries.length, 
       icon: ClockIcon, 
       color: 'bg-yellow-500' 
     },
     { 
       label: 'Completed', 
-      value: deliveries.filter(d => d.status === 'DELIVERED').length, 
+      value: completedDeliveries.length, 
       icon: CheckCircleIcon, 
       color: 'bg-green-500' 
     },
     { 
       label: 'Pending Pickup', 
-      value: deliveries.filter(d => d.status === 'ASSIGNED' && !d.driver_id).length, 
+      value: deliveries.filter(d => d.status === 'ASSIGNED').length, 
       icon: ExclamationCircleIcon, 
       color: 'bg-red-500' 
     },
@@ -119,70 +159,116 @@ const DriverDashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Current Deliveries */}
+      {/* Active Deliveries */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Active Deliveries</h2>
-        {deliveries.filter(d => !['DELIVERED', 'CANCELLED', 'FAILED'].includes(d.status)).length === 0 ? (
-          <div className="text-center py-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Active Deliveries ({activeDeliveries.length})
+          </h2>
+          <button
+            onClick={fetchDeliveries}
+            className="flex items-center space-x-2 text-sm text-primary-600 hover:text-primary-700"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        {activeDeliveries.length === 0 ? (
+          <div className="text-center py-12">
             <TruckIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600">No active deliveries</p>
+            <p className="text-sm text-gray-500 mt-1">Check back later for new assignments</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {deliveries
-              .filter(d => !['DELIVERED', 'CANCELLED', 'FAILED'].includes(d.status))
-              .map((delivery) => (
-                <div
-                  key={delivery.id}
-                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/dashboard/delivery/${delivery.id}`)}
-                >
-                  <div className="space-y-2">
+            {activeDeliveries.map((delivery) => (
+              <div
+                key={delivery.id}
+                className="border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate(`/dashboard/delivery/${delivery.id}`)}
+              >
+                <div className="p-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex items-center space-x-3">
-                      <span className="font-semibold text-gray-900">{delivery.tracking_number}</span>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(delivery.status)}`}>
-                        {delivery.status.replace('_', ' ')}
-                      </span>
+                      <div className="p-2 bg-primary-50 rounded-lg">
+                        {getStatusIcon(delivery.status)}
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold text-gray-900">{delivery.tracking_number}</span>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(delivery.status)}`}>
+                            {delivery.status.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">To: {delivery.receiver_name}</p>
+                      </div>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPinIcon className="h-4 w-4 mr-1" />
-                      <span>To: {delivery.receiver_name}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <span>{delivery.weight} kg</span>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-sm text-gray-600">{delivery.weight} kg</span>
+                      <button 
+                        className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/dashboard/delivery/${delivery.id}`);
+                        }}
+                      >
+                        Update Status
+                      </button>
                     </div>
                   </div>
-                  <button 
-                    className="mt-2 sm:mt-0 px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/dashboard/delivery/${delivery.id}`);
-                    }}
-                  >
-                    Update Status
-                  </button>
+
+                  {/* Status Progress Bar */}
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      {getStatusSteps(delivery.status).map((step, index) => (
+                        <div key={step.step} className="flex items-center flex-1">
+                          <div className="flex flex-col items-center">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              step.completed ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400'
+                            }`}>
+                              {step.completed ? (
+                                <CheckCircleIcon className="h-5 w-5" />
+                              ) : (
+                                <span className="text-xs">{index + 1}</span>
+                              )}
+                            </div>
+                            <span className={`text-xs mt-1 ${
+                              step.current ? 'text-primary-600 font-medium' : 'text-gray-500'
+                            }`}>
+                              {step.step.replace('_', ' ')}
+                            </span>
+                          </div>
+                          {index < getStatusSteps(delivery.status).length - 1 && (
+                            <div className={`flex-1 h-0.5 mx-2 ${
+                              step.completed ? 'bg-green-500' : 'bg-gray-200'
+                            }`} />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button
-          onClick={() => navigate('/dashboard/assigned-shipments')}
-          className="flex items-center justify-center space-x-2 px-4 py-3 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-        >
-          <ArrowPathIcon className="h-5 w-5 text-primary-600" />
-          <span>View All Assignments</span>
-        </button>
-        <button
-          onClick={() => window.location.reload()}
-          className="flex items-center justify-center space-x-2 px-4 py-3 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-        >
-          <ArrowPathIcon className="h-5 w-5 text-primary-600" />
-          <span>Refresh Status</span>
-        </button>
+      {/* Completed Deliveries Summary */}
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Completed Deliveries</h3>
+            <p className="text-sm text-gray-600">Total: {completedDeliveries.length}</p>
+          </div>
+          <button
+            onClick={() => navigate('/dashboard/delivery-history')}
+            className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+          >
+            View All →
+          </button>
+        </div>
       </div>
     </div>
   );

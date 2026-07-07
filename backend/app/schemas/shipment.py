@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 from app.models.shipment import ShipmentStatus
@@ -28,8 +28,8 @@ class ShipmentBase(BaseModel):
     receiver_phone: str = Field(min_length=10, max_length=20)
     weight: float = Field(gt=0)
     package_type: str = Field(min_length=2, max_length=50)
-    description: Optional[str] = Field(max_length=500)
-    notes: Optional[str] = Field(max_length=500)
+    description: Optional[str] = Field(None, max_length=500)
+    notes: Optional[str] = Field(None, max_length=500)
 
 class ShipmentCreate(ShipmentBase):
     pickup_address: AddressCreate
@@ -54,14 +54,8 @@ class ShipmentResponse(BaseModel):
     description: Optional[str]
     notes: Optional[str]
     status: ShipmentStatus
-    pickup_address: str
-    pickup_city: str
-    pickup_state: str
-    pickup_postal_code: str
-    delivery_address: str
-    delivery_city: str
-    delivery_state: str
-    delivery_postal_code: str
+    pickup_address: AddressResponse  # Changed to nested object
+    delivery_address: AddressResponse  # Changed to nested object
     created_at: datetime
     updated_at: datetime
     delivered_at: Optional[datetime]

@@ -166,8 +166,9 @@ const AdminDashboard: React.FC = () => {
         .slice(0, 5);
       setRecentShipments(recent);
 
-      // Get recent users (last 5)
+      // Get recent users (last 5) - EXCLUDE ADMIN USERS
       const recentUsersList = users
+        .filter((u: any) => u.role !== 'ADMIN') // Filter out admin users
         .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
       setRecentUsers(recentUsersList);
@@ -589,7 +590,7 @@ const AdminDashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Recent Users */}
+        {/* Recent Users - Excluding Admin */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Recent Users</h3>
@@ -632,28 +633,6 @@ const AdminDashboard: React.FC = () => {
               ))}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* System Status Footer */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <h4 className="text-sm font-medium text-gray-900">System Status</h4>
-          </div>
-          <p className="text-sm text-gray-600 mt-1">All systems operational</p>
-          <p className="text-xs text-gray-500 mt-0.5">Last checked: {new Date().toLocaleTimeString()}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-          <h4 className="text-sm font-medium text-gray-900">Active Sessions</h4>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalUsers}</p>
-          <p className="text-xs text-gray-500">Users currently online</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-          <h4 className="text-sm font-medium text-gray-900">System Version</h4>
-          <p className="text-lg font-bold text-gray-900 mt-1">v1.0.0</p>
-          <p className="text-xs text-gray-500">Dispatch Delivery Management</p>
         </div>
       </div>
     </div>

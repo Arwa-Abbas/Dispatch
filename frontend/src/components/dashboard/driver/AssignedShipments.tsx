@@ -10,14 +10,23 @@ import {
   CheckCircleIcon,
   ClockIcon,
   XCircleIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 
 interface AssignedShipment {
   id: number;
   tracking_number: string;
   status: string;
-  pickup_address: string;
-  delivery_address: string;
+  pickup_address: {
+    street: string;
+    city: string;
+    state: string;
+  };
+  delivery_address: {
+    street: string;
+    city: string;
+    state: string;
+  };
   receiver_name: string;
   receiver_phone: string;
   weight: number;
@@ -37,8 +46,10 @@ const AssignedShipments: React.FC = () => {
   }, []);
 
   const fetchAssignedShipments = async () => {
+    setLoading(true);
     try {
-      const response = await api.get('/shipments');
+      const response = await api.get('/driver/shipments');
+      console.log('Assigned shipments:', response.data);
       setShipments(response.data);
     } catch (error) {
       toast.error('Failed to load assigned shipments');
@@ -55,6 +66,7 @@ const AssignedShipments: React.FC = () => {
       OUT_FOR_DELIVERY: 'bg-orange-100 text-orange-700',
       DELIVERED: 'bg-green-100 text-green-700',
       CANCELLED: 'bg-red-100 text-red-700',
+      FAILED: 'bg-red-100 text-red-700',
     };
     return colors[status] || 'bg-gray-100 text-gray-700';
   };
@@ -64,6 +76,7 @@ const AssignedShipments: React.FC = () => {
       case 'DELIVERED':
         return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
       case 'CANCELLED':
+      case 'FAILED':
         return <XCircleIcon className="h-5 w-5 text-red-600" />;
       case 'ASSIGNED':
         return <ClockIcon className="h-5 w-5 text-blue-600" />;
@@ -87,9 +100,44 @@ const AssignedShipments: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Assigned Shipments</h1>
-        <p className="text-gray-600">View and manage your assigned deliveries</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">My Deliveries</h1>
+          <p className="text-gray-600">View and manage your assigned shipments</p>
+        </div>
+        <button
+          onClick={fetchAssignedShipments}
+          className="flex items-center space-x-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+        >
+          <ArrowPathIcon className="h-4 w-4" />
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Total</p>
+          <p className="text-2xl font-bold text-gray-900">{shipments.length}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">In Progress</p>
+          <p className="text-2xl font-bold text-yellow-600">
+            {shipments.filter(s => !['DELIVERED', 'CANCELLED', 'FAILED'].includes(s.status)).length}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Completed</p>
+          <p className="text-2xl font-bold text-green-600">
+            {shipments.filter(s => s.status === 'DELIVERED').length}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+          <p className="text-sm text-gray-600">Pending Pickup</p>
+          <p className="text-2xl font-bold text-blue-600">
+            {shipments.filter(s => s.status === 'ASSIGNED').length}
+          </p>
+        </div>
       </div>
 
       {/* Search */}
@@ -149,16 +197,21 @@ const AssignedShipments: React.FC = () => {
                   <MapPinIcon className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
                   <div>
                     <span className="text-gray-600">Pickup:</span>
-                    <span className="ml-2 text-gray-900">{shipment.pickup_address}</span>
+                    <span className="ml-2 text-gray-900">{shipment.pickup_address?.street}</span>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <MapPinIcon className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
                   <div>
                     <span className="text-gray-600">Delivery:</span>
-                    <span className="ml-2 text-gray-900">{shipment.delivery_address}</span>
+                    <span className="ml-2 text-gray-900">{shipment.delivery_address?.street}</span>
                   </div>
                 </div>
+              </div>
+              <div className="mt-3 flex items-center space-x-4 text-xs text-gray-500">
+                <span>Weight: {shipment.weight} kg</span>
+                <span>Type: {shipment.package_type}</span>
+                <span>Created: {new Date(shipment.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           ))}

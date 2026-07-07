@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.database.session import create_db_and_tables
-from app.api import auth_routes, user_routes, shipment_routes
+from app.api import auth_routes, user_routes, shipment_routes, driver_routes
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,7 +18,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware - THIS IS THE FIX
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -42,10 +42,11 @@ app.add_middleware(
     ],
 )
 
-# Include routers
+# Include routers - MAKE SURE driver_routes IS INCLUDED
 app.include_router(auth_routes.router, prefix=f"{settings.API_V1_STR}")
 app.include_router(user_routes.router, prefix=f"{settings.API_V1_STR}")
 app.include_router(shipment_routes.router, prefix=f"{settings.API_V1_STR}")
+app.include_router(driver_routes.router, prefix=f"{settings.API_V1_STR}")  # ← THIS IS CRITICAL
 
 @app.get("/")
 async def root():
@@ -58,12 +59,3 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-
-# Test CORS endpoint
-@app.options("/test-cors")
-async def test_cors_options():
-    return {"message": "CORS is working!"}
-
-@app.get("/test-cors")
-async def test_cors_get():
-    return {"message": "CORS is working!"}
