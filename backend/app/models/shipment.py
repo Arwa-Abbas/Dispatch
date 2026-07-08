@@ -58,6 +58,8 @@ class Shipment(SQLModel, table=True):
         sa_relationship_kwargs={"foreign_keys": "[Shipment.delivery_address_id]"}
     )
     history: List["ShipmentHistory"] = Relationship(back_populates="shipment")
+    # ADD THIS - notifications relationship
+    notifications: List["Notification"] = Relationship(back_populates="shipment")
 
 class ShipmentHistory(SQLModel, table=True):
     __tablename__ = "shipment_history"

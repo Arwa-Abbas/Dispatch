@@ -37,6 +37,8 @@ class User(SQLModel, table=True):
         back_populates="user",
         sa_relationship_kwargs={"foreign_keys": "[ShipmentHistory.updated_by]"}
     )
+    # Keep this relationship
+    notifications: List["Notification"] = Relationship(back_populates="user")
     
     def __repr__(self):
         return f"<User {self.email}>"

@@ -8,7 +8,7 @@ from app.services.shipment_service import ShipmentService
 from app.schemas.shipment import ShipmentResponse
 from app.models.shipment import ShipmentStatus
 
-# Use "/driver" prefix to match frontend
+
 router = APIRouter(prefix="/driver", tags=["Driver"])
 
 @router.get("/shipments", response_model=List[ShipmentResponse])

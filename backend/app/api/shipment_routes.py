@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from typing import List
 from app.schemas.shipment import ShipmentCreate, ShipmentResponse, ShipmentHistoryResponse
 from app.services.shipment_service import ShipmentService
+from app.services.notification_handler import NotificationHandler
 from app.core.dependencies import get_current_user, get_session, require_role
 from app.models.user import User
 from app.models.shipment import ShipmentStatus
@@ -16,11 +17,27 @@ async def create_shipment(
     session: Session = Depends(get_session)
 ):
     try:
+        print("Creating shipment...")
         service = ShipmentService(session)
         shipment = service.create_shipment(current_user.id, data)
+        print(f"Shipment created: {shipment.id}")
+        
+        # Send notification for shipment creation
+        try:
+            print("Attempting to send notification...")
+            handler = NotificationHandler(session)
+            handler.notify_shipment_created(shipment, current_user)
+            print("Notification handler completed")
+        except Exception as e:
+            print(f"Notification error (non-critical): {str(e)}")
+            import traceback
+            traceback.print_exc()
+        
         return shipment
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"Error creating shipment: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -43,7 +60,7 @@ async def get_shipments(
         
         return shipments
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"Error fetching shipments: {str(e)}")
         return []
 
 @router.get("/pending", response_model=List[ShipmentResponse])
@@ -56,7 +73,7 @@ async def get_pending_shipments(
         shipments = service.get_pending_shipments()
         return shipments
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"Error fetching pending shipments: {str(e)}")
         return []
 
 @router.get("/track/{tracking_number}", response_model=ShipmentResponse)
@@ -142,7 +159,30 @@ async def update_shipment_status(
             detail="You're not assigned to this shipment"
         )
     
-    updated = service.update_shipment_status(shipment_id, status, current_user.id, remarks)
+    # Store old status BEFORE updating
+    old_status = shipment.status
+    print(f"[ROUTE] Old status: {old_status}, New status: {status}")
+    
+    # Update status
+    updated_shipment = service.update_shipment_status(shipment_id, status, current_user.id, remarks)
+    
+    if not updated_shipment:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to update shipment status"
+        )
+    
+    # Send notification for status change - use the updated shipment
+    try:
+        print(f"[ROUTE] Sending status change notification: {old_status} -> {status}")
+        handler = NotificationHandler(session)
+        handler.notify_status_changed(updated_shipment, old_status, status)
+        print("[ROUTE] Status notification sent successfully")
+    except Exception as e:
+        print(f"[ROUTE] Notification error (non-critical): {str(e)}")
+        import traceback
+        traceback.print_exc()
+    
     return {"message": "Status updated successfully", "status": status}
 
 @router.put("/{shipment_id}/assign")
@@ -160,5 +200,21 @@ async def assign_driver(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Shipment not found"
         )
+    
+    # Send notification for driver assignment
+    try:
+        print("[ROUTE] Sending driver assignment notification...")
+        driver = session.get(User, driver_id)
+        customer = session.get(User, shipment.customer_id)
+        if driver and customer:
+            handler = NotificationHandler(session)
+            handler.notify_driver_assigned(shipment, driver, customer, current_user)
+            print("[ROUTE] Driver assignment notification sent")
+        else:
+            print("[ROUTE] Driver or customer not found for notification")
+    except Exception as e:
+        print(f"[ROUTE] Notification error (non-critical): {str(e)}")
+        import traceback
+        traceback.print_exc()
     
     return {"message": "Driver assigned successfully"}

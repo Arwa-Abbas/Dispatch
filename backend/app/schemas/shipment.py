@@ -54,8 +54,8 @@ class ShipmentResponse(BaseModel):
     description: Optional[str]
     notes: Optional[str]
     status: ShipmentStatus
-    pickup_address: AddressResponse  # Changed to nested object
-    delivery_address: AddressResponse  # Changed to nested object
+    pickup_address: AddressResponse
+    delivery_address: AddressResponse
     created_at: datetime
     updated_at: datetime
     delivered_at: Optional[datetime]

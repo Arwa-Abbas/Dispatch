@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import { api } from '../../../api/api';
 import {
   HomeIcon,
   TruckIcon,
@@ -21,6 +22,7 @@ import {
   BellIcon,
   ShoppingBagIcon,
 } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 interface MenuItem {
   path: string;
@@ -32,9 +34,58 @@ interface MenuItem {
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [previousCount, setPreviousCount] = useState(0);
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Fetch unread notification count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await api.get('/notifications/count');
+        const newCount = response.data.count;
+        
+        // Show toast notification when new notifications arrive
+        if (newCount > previousCount && previousCount > 0) {
+          toast.success(`📨 You have ${newCount - previousCount} new notification(s)`);
+        } else if (newCount > 0 && previousCount === 0) {
+          toast.success(`📨 You have ${newCount} new notification(s)`);
+        }
+        
+        setPreviousCount(newCount);
+        setUnreadCount(newCount);
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    // Poll every 15 seconds for new notifications
+    const interval = setInterval(fetchUnreadCount, 15000);
+    return () => clearInterval(interval);
+  }, [previousCount]);
+
+  // Also fetch when user changes or when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        const fetchUnreadCount = async () => {
+          try {
+            const response = await api.get('/notifications/count');
+            setUnreadCount(response.data.count);
+          } catch (error) {
+            console.error('Failed to fetch unread count:', error);
+          }
+        };
+        fetchUnreadCount();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   const toggleSidebar = () => {
     if (window.innerWidth < 1024) {
@@ -59,7 +110,6 @@ const Sidebar: React.FC = () => {
   const getMenuItems = (): MenuItem[] => {
     const role = user?.role || 'CUSTOMER';
 
-    // Admin menu - Dashboard (with analytics), Users, Shipments, Assign Driver
     if (role === 'ADMIN') {
       return [
         { path: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
@@ -69,7 +119,6 @@ const Sidebar: React.FC = () => {
       ];
     }
 
-    // Driver menu
     if (role === 'DRIVER') {
       return [
         { path: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
@@ -80,7 +129,6 @@ const Sidebar: React.FC = () => {
       ];
     }
 
-    // Customer menu (default)
     return [
       { path: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
       { path: '/dashboard/create-shipment', icon: PlusCircleIcon, label: 'Create Shipment' },
@@ -93,7 +141,6 @@ const Sidebar: React.FC = () => {
 
   const menuItems = getMenuItems();
 
-  // Check if a menu item is active
   const isActive = (path: string) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
@@ -101,7 +148,6 @@ const Sidebar: React.FC = () => {
     return location.pathname.startsWith(path);
   };
 
-  // Get user initials for avatar
   const getUserInitials = () => {
     if (!user?.full_name) return 'U';
     const names = user.full_name.split(' ');
@@ -126,7 +172,6 @@ const Sidebar: React.FC = () => {
         )}
       </button>
 
-      {/* Overlay for mobile */}
       {isMobileOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -135,14 +180,12 @@ const Sidebar: React.FC = () => {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`fixed lg:static inset-y-0 left-0 z-40 bg-white shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col h-full ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0`}
         style={{ width: isOpen ? '16rem' : '5rem' }}
       >
-        {/* Logo Section */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <Link 
             to="/" 
@@ -180,7 +223,6 @@ const Sidebar: React.FC = () => {
           </button>
         </div>
 
-        {/* User Info Section */}
         <div className={`p-4 border-b border-gray-200 bg-primary-50 transition-all duration-300 ${
           !isOpen ? 'lg:px-2' : ''
         }`}>
@@ -204,7 +246,6 @@ const Sidebar: React.FC = () => {
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4">
           <ul className="space-y-1">
             {menuItems.map((item) => {
@@ -248,14 +289,15 @@ const Sidebar: React.FC = () => {
           </ul>
         </nav>
 
-        {/* Bottom Section - Notifications, Support, and Home for ALL users */}
         <div className="p-4 border-t border-gray-200">
-          {/* Notifications - visible for all users */}
           <button
             className={`flex items-center space-x-3 w-full px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors ${
               !isOpen ? 'lg:justify-center lg:space-x-0' : ''
             }`}
-            onClick={() => navigate('/dashboard/notifications')}
+            onClick={() => {
+              closeSidebar();
+              navigate('/dashboard/notifications');
+            }}
           >
             <BellIcon className={`h-5 w-5 flex-shrink-0 text-gray-500 ${
               !isOpen ? 'lg:mr-0' : ''
@@ -265,19 +307,23 @@ const Sidebar: React.FC = () => {
             }`}>
               Notifications
             </span>
-            <span className={`ml-auto bg-red-500 text-white text-xs font-medium px-2 py-0.5 rounded-full ${
+            <span className={`ml-auto ${
+              unreadCount > 0 ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
+            } text-xs font-medium px-2 py-0.5 rounded-full ${
               !isOpen ? 'lg:hidden' : ''
             }`}>
-              0
+              {unreadCount}
             </span>
           </button>
 
-          {/* Support - visible for all users */}
           <button
             className={`flex items-center space-x-3 w-full px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors mt-1 ${
               !isOpen ? 'lg:justify-center lg:space-x-0' : ''
             }`}
-            onClick={() => navigate('/dashboard/support')}
+            onClick={() => {
+              closeSidebar();
+              navigate('/dashboard/support');
+            }}
           >
             <ChatBubbleLeftRightIcon className={`h-5 w-5 flex-shrink-0 text-gray-500 ${
               !isOpen ? 'lg:mr-0' : ''
@@ -289,7 +335,6 @@ const Sidebar: React.FC = () => {
             </span>
           </button>
 
-          {/* Home - visible for all users (NEW) */}
           <button
             className={`flex items-center space-x-3 w-full px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors mt-1 ${
               !isOpen ? 'lg:justify-center lg:space-x-0' : ''
@@ -309,7 +354,6 @@ const Sidebar: React.FC = () => {
             </span>
           </button>
 
-          {/* Logout */}
           <button
             onClick={handleLogout}
             className={`flex items-center space-x-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-2 ${
@@ -327,7 +371,6 @@ const Sidebar: React.FC = () => {
           </button>
         </div>
 
-        {/* Version Info */}
         <div className={`px-4 py-2 border-t border-gray-200 text-center ${
           !isOpen ? 'lg:hidden' : ''
         }`}>

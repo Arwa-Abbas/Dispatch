@@ -104,7 +104,6 @@ class ShipmentService:
     def get_shipments_by_driver(self, driver_id: int) -> List[Shipment]:
         """Get all shipments assigned to a driver"""
         try:
-            # Get shipments where driver_id matches AND status is not DELIVERED or CANCELLED
             statement = select(Shipment).where(
                 Shipment.driver_id == driver_id
             )
