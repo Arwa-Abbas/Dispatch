@@ -109,7 +109,7 @@ const CustomerDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.full_name}! 👋</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.full_name}!</h1>
         <p className="text-gray-600">Here's what's happening with your shipments</p>
       </div>
 

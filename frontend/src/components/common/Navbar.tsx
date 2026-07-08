@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-primary-600">Dispath</span>
+              <span className="text-2xl font-bold text-primary-600">Dispatch</span>
             </Link>
           </div>
 

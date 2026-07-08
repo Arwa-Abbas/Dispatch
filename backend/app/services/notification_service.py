@@ -19,22 +19,22 @@ class NotificationService:
     ) -> Optional[Notification]:
         """Create a new notification"""
         try:
-            print(f"🔔 [Service] Creating notification for user {user_id}: {title}")
+            print(f"[Service] Creating notification for user {user_id}: {title}")
             
             # Check if user exists
             user = self.session.get(User, user_id)
             if not user:
-                print(f"❌ [Service] User {user_id} not found")
+                print(f"[Service] User {user_id} not found")
                 return None
             
-            print(f"✅ [Service] User found: {user.email}")
+            print(f"[Service] User found: {user.email}")
             
             # Check if notifications table exists
             try:
                 test_query = self.session.exec(select(Notification).limit(1)).all()
-                print("✅ [Service] Notifications table exists and is accessible")
+                print("[Service] Notifications table exists and is accessible")
             except Exception as table_error:
-                print(f"❌ [Service] Notifications table issue: {str(table_error)}")
+                print(f"[Service] Notifications table issue: {str(table_error)}")
                 print("Please run: alembic revision --autogenerate -m 'Add notifications table'")
                 print("Then run: alembic upgrade head")
                 return None
@@ -52,18 +52,18 @@ class NotificationService:
                 sent_at=datetime.utcnow()
             )
             
-            print(f"📝 [Service] Notification object created: {notification.title}")
+            print(f"[Service] Notification object created: {notification.title}")
             
             # Add to session and commit
             self.session.add(notification)
             self.session.commit()
             self.session.refresh(notification)
             
-            print(f"✅ [Service] Notification saved to database: ID {notification.id}")
+            print(f"[Service] Notification saved to database: ID {notification.id}")
             return notification
             
         except Exception as e:
-            print(f"❌ [Service] Error creating notification: {str(e)}")
+            print(f"[Service] Error creating notification: {str(e)}")
             import traceback
             traceback.print_exc()
             self.session.rollback()

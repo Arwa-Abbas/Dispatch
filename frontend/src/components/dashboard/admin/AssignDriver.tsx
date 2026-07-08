@@ -239,7 +239,7 @@ const AssignDriver: React.FC = () => {
                       </div>
                       <div className="flex items-center text-xs text-gray-500 mt-1 space-x-3">
                         {driver.vehicle_type && (
-                          <span>🚗 {driver.vehicle_type}</span>
+                          <span>{driver.vehicle_type}</span>
                         )}
                         {driver.vehicle_number && (
                           <span>#{driver.vehicle_number}</span>
@@ -262,7 +262,7 @@ const AssignDriver: React.FC = () => {
         <div>
           {selectedShipment && selectedDriver && (
             <p className="text-sm text-green-600">
-              ✅ Ready to assign{' '}
+              Ready to assign{' '}
               <strong>{pendingShipments.find(s => s.id === selectedShipment)?.tracking_number}</strong> to{' '}
               <strong>{availableDrivers.find(d => d.id === selectedDriver)?.full_name}</strong>
             </p>

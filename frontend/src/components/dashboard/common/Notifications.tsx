@@ -48,7 +48,7 @@ const Notifications: React.FC = () => {
         ? '/notifications?unread_only=true&limit=50' 
         : '/notifications?limit=50';
       const response = await api.get(url);
-      console.log('📨 Notifications fetched:', response.data);
+      console.log('Notifications fetched:', response.data);
       setNotifications(response.data);
     } catch (error: any) {
       console.error('Failed to fetch notifications:', error);
@@ -61,7 +61,7 @@ const Notifications: React.FC = () => {
   const fetchUnreadCount = async () => {
     try {
       const response = await api.get('/notifications/count');
-      console.log('📨 Unread count:', response.data);
+      console.log('Unread count:', response.data);
       setUnreadCount(response.data.count);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);

@@ -172,7 +172,7 @@ async def update_shipment_status(
             detail="Failed to update shipment status"
         )
     
-    # Send notification for status change - use the updated shipment
+    # Send notification for status change 
     try:
         print(f"[ROUTE] Sending status change notification: {old_status} -> {status}")
         handler = NotificationHandler(session)

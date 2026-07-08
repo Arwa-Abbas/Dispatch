@@ -1,4 +1,3 @@
-# app/repositories/user_repository.py
 from sqlmodel import Session, select
 from app.models.user import User
 from typing import Optional, List

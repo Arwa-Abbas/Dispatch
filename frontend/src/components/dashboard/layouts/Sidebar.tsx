@@ -49,9 +49,9 @@ const Sidebar: React.FC = () => {
         
         // Show toast notification when new notifications arrive
         if (newCount > previousCount && previousCount > 0) {
-          toast.success(`📨 You have ${newCount - previousCount} new notification(s)`);
+          toast.success(`You have ${newCount - previousCount} new notification(s)`);
         } else if (newCount > 0 && previousCount === 0) {
-          toast.success(`📨 You have ${newCount} new notification(s)`);
+          toast.success(`You have ${newCount} new notification(s)`);
         }
         
         setPreviousCount(newCount);

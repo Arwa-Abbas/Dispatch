@@ -12,7 +12,7 @@ import {
   ClipboardDocumentListIcon,
   CheckCircleIcon,
   ClockIcon,
-  XCircleIcon,  // ← Add this import
+  XCircleIcon,  
 } from '@heroicons/react/24/outline';
 
 interface ShipmentDetail {

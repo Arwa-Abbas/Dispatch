@@ -42,8 +42,6 @@ def create_remember_token() -> str:
     """Create a secure remember me token"""
     # Generate a random token and hash it for storage
     random_token = secrets.token_urlsafe(64)
-    # Hash the token for storage (but we'll store the raw token in the database for simplicity)
-    # In production, you'd hash this
     return random_token
 
 def verify_remember_token(token: str, user_id: int, remember_token: str) -> bool:

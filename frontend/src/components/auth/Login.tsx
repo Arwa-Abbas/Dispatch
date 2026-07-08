@@ -54,8 +54,6 @@ const Login: React.FC = () => {
     setError('');
     setIsLoading(true);
 
-    // Read values directly from the form DOM to capture browser autofill
-    // (React state may not update when the browser autofills fields)
     const form = formRef.current;
     const submittedEmail = (form?.querySelector('input[name="username"]') as HTMLInputElement)?.value || email;
     const submittedPassword = (form?.querySelector('input[name="password"]') as HTMLInputElement)?.value || password;

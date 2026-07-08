@@ -1,6 +1,3 @@
-"""
-Notification Handler - Handles role-based notifications
-"""
 from sqlmodel import Session, select
 from app.models.shipment import Shipment, ShipmentStatus
 from app.models.user import User
