@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../api/api';
 import toast from 'react-hot-toast';
 import { ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -11,20 +12,50 @@ interface Message {
   timestamp: Date;
 }
 
+const GREETING: Message = {
+  id: '1',
+  type: 'bot',
+  content: '👋 Hello! I\'m your delivery assistant. Ask me about your shipments!',
+  timestamp: new Date(),
+};
+
 const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'bot',
-      content: '👋 Hello! I\'m your delivery assistant. Ask me about your shipments!',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth(); // adjust field name if your hook exposes it differently
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load this specific user's chat history whenever the logged-in account changes
+  // (covers login, logout, and switching accounts without a full page reload)
+  useEffect(() => {
+    if (!user?.id) {
+      setMessages([GREETING]);
+      return;
+    }
+    const stored = localStorage.getItem(`chat_messages_${user.id}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored).map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp),
+        }));
+        setMessages(parsed);
+      } catch {
+        setMessages([GREETING]);
+      }
+    } else {
+      setMessages([GREETING]);
+    }
+  }, [user?.id]);
+
+  // Persist this user's history under their own key, so it doesn't leak to the next account
+  useEffect(() => {
+    if (user?.id) {
+      localStorage.setItem(`chat_messages_${user.id}`, JSON.stringify(messages));
+    }
+  }, [messages, user?.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -99,7 +130,19 @@ const ChatWidget: React.FC = () => {
             {messages.map(msg => (
               <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] p-3 rounded-lg ${msg.type === 'user' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                  <div
+                    className={`text-sm leading-relaxed
+                      [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0
+                      [&_ul]:my-1 [&_ul]:pl-4 [&_ul]:list-disc
+                      [&_ol]:my-1 [&_ol]:pl-4 [&_ol]:list-decimal
+                      [&_li]:my-0.5
+                      [&_strong]:font-semibold
+                      [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded
+                      ${msg.type === 'user' ? '[&_code]:bg-primary-700' : '[&_code]:bg-gray-200'}
+                    `}
+                  >
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
                   <div className="text-xs opacity-50 mt-1">
                     {msg.timestamp.toLocaleTimeString()}
                   </div>
