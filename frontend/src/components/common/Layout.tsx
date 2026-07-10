@@ -1,5 +1,6 @@
 import React from 'react';
 import Navbar from './Navbar';
+import ChatWidget from '../chat/ChatWidget';
 import { Toaster } from 'react-hot-toast';
 
 interface LayoutProps {
@@ -13,6 +14,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {children}
       </main>
+      <ChatWidget />
       <Toaster
         position="top-right"
         toastOptions={{
